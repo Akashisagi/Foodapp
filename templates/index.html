@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6f3eb">
+    <title>Sunday Table | Order at your table</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="wordmark" href="/" aria-label="Sunday Table home">
+        <span class="wordmark-mark">S</span>
+        <span>SUNDAY <i>TABLE</i></span>
+      </a>
+      <div class="restaurant-meta">
+        <span class="open-indicator"><span></span> OPEN UNTIL 10 PM</span>
+        <span class="meta-divider" aria-hidden="true"></span>
+        <span>Neighborhood kitchen · Est. 1998</span>
+      </div>
+      <a class="topbar-link" href="#menu">THE MENU <span aria-hidden="true">↘</span></a>
+    </header>
+
+    <main>
+      <section class="welcome" aria-labelledby="page-title">
+        <div class="welcome-copy">
+          <p class="eyebrow"><span class="eyebrow-line"></span> GOOD FOOD, GOOD COMPANY</p>
+          <h1 id="page-title">A little taste<br>of <em>home.</em></h1>
+          <p class="welcome-description">Made slowly, shared generously. Pick something lovely and we'll bring it right to your table.</p>
+          <a class="text-link" href="#menu">Explore today's menu <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="welcome-photo" role="img" aria-label="Fresh pasta with tomato and basil">
+          <div class="photo-note"><span>01 / 06</span><span>FROM OUR KITCHEN, WITH LOVE</span></div>
+        </div>
+      </section>
+
+      <section class="order-layout" id="menu" aria-label="Menu and your order">
+        <div class="menu-area">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow"><span class="eyebrow-line"></span> SOMETHING FOR EVERYONE</p>
+              <h2>From the <em>menu</em></h2>
+            </div>
+            <p class="menu-count" id="menu-count">A few of our favorites</p>
+          </div>
+          <nav class="category-tabs" id="category-tabs" aria-label="Filter menu by category"></nav>
+          <div class="menu-grid" id="menu-grid" aria-live="polite">
+            <p class="loading-message">Setting the table...</p>
+          </div>
+        </div>
+
+        <aside class="order-panel" aria-labelledby="order-title">
+          <div class="order-panel-heading">
+            <div>
+              <p class="eyebrow">YOUR EVENING</p>
+              <h2 id="order-title">Your order <span class="item-count" id="item-count">0</span></h2>
+            </div>
+            <span class="order-spark" aria-hidden="true">✳</span>
+          </div>
+          <div class="cart-items" id="cart-items" aria-live="polite">
+            <div class="empty-cart">
+              <span class="empty-cart-mark" aria-hidden="true">+</span>
+              <p>Your table is waiting.</p>
+              <span>Add something from the menu to get started.</span>
+            </div>
+          </div>
+          <div class="order-total">
+            <span>Subtotal</span>
+            <strong id="order-total">$0.00</strong>
+          </div>
+          <form class="checkout-form" id="checkout-form">
+            <label for="customer-name">Name for the order</label>
+            <input id="customer-name" name="customer_name" type="text" placeholder="e.g. Alex" minlength="2" maxlength="80" required>
+            <label for="table-number">Table number</label>
+            <select id="table-number" name="table_number" required>
+              <option value="" selected disabled>Select your table</option>
+            </select>
+            <button class="place-order" id="place-order" type="submit" disabled>
+              <span>Send to the kitchen</span><span aria-hidden="true">↗</span>
+            </button>
+            <p class="form-message" id="form-message" role="status"></p>
+          </form>
+          <p class="order-footnote"><span aria-hidden="true">✳</span> Your meal is prepared fresh, just for you.</p>
+        </aside>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Sunday Table <i>·</i> Made for lingering.</span>
+      <span>Questions? Give us a wave.</span>
+    </footer>
+  </body>
+</html>
