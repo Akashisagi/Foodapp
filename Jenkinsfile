@@ -28,8 +28,9 @@ pipeline {
 
         stage('cont-test') {
             steps {
-                sh '''
+                sh '''#!/bin/bash
                     docker run -itd --name test-cont -p 8081:5000 akashyogi/foodapp:1
+                    sleep 3
 
                     success=1
 
@@ -44,7 +45,7 @@ pipeline {
                         sleep 2
                     done
 
-                    if ["$success" -ne 0]; then
+                    if [ "$success" -ne 0 ]; then
                         echo "Application health check failed"
                         exit 1
                     fi
