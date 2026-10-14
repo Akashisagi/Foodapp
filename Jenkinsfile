@@ -28,7 +28,7 @@ pipeline {
         stage('cont-test') {
             steps {
                 sh '''
-                    docker run -d --name test-cont -p 8081:5000 foodapp
+                    docker run -itd --name test-cont -p 8081:5000 foodapp
 
                     success=1
 
