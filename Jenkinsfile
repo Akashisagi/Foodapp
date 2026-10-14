@@ -22,13 +22,14 @@ pipeline {
         stage('build') {
             steps {
                 sh "docker build -t foodapp ."
+                sh "docker tag foodapp akashyogi/foodapp:1"
             }
         }
 
         stage('cont-test') {
             steps {
                 sh '''
-                    docker run -itd --name test-cont -p 8081:5000 foodapp
+                    docker run -itd --name test-cont -p 8081:5000 foodapp:1
 
                     success=1
 
