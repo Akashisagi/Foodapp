@@ -21,7 +21,7 @@ pipeline {
 
         stage('build') {
             steps {
-                sh "docker build -t foodapp ."
+                sh "docker build -t foodapp:1 ."
                 sh "docker tag foodapp akashyogi/foodapp:1"
             }
         }
