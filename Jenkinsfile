@@ -43,7 +43,7 @@ pipeline {
                         sleep 2
                     done
 
-                    if [ "$success" -ne 0 ]; then
+                    if ["$success" -ne 0]; then
                         echo "Application health check failed"
                         exit 1
                     fi
