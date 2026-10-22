@@ -78,7 +78,8 @@ pipeline {
           steps{
             sshagent(credentials: ['jenkinsid']){
                sh '''
-                   ssh ubuntu@10.0.90.76 '
+                   ssh ubuntu@10.0.90.76 "BUILD_NUMBER=$BUILD_NUMBER" bash -s <<'REMOTE'
+                   set -e
                    docker pull akashyogi/foodapp:${BUILD_NUMBER}
                    docker rm -f food 2>/dev/null || true
                    docker run -itd --name food -p 80:5000 akashyogi/foodapp:${BUILD_NUMBER}
@@ -98,7 +99,8 @@ pipeline {
                    echo "Application health check failed"
                    exit 1
                    fi
-                   '
+                   echo "application deployed successfully"
+                   REMOTE
                '''
             }
           }
