@@ -82,19 +82,19 @@ pipeline {
                    docker pull akashyogi/foodapp:1
                    docker rm -f food 2>/dev/null || true
                    docker run -itd --name food -p 80:5000 akashyogi/foodapp:1
-                   success =1
+                   success=1
                    for i in $(seq 1 10);do 
-                         echo "Health check attempt i$"
+                         echo "Health check attempt $i"
                          if curl -f http://localhost;then
                          echo "Application is healthy"
-                                success =0
+                                success=0
                                 break
                                 fi
-                         if [ "$i" lt 10 ]; then
+                         if [ "$i" -lt 10 ]; then
                                 sleep 3
                          fi
                    done
-                   if [ "$success" eq -1 ];then
+                   if [ "$success" -eq 1 ];then
                    echo "Application health check failed"
                    exit 1
                    fi
