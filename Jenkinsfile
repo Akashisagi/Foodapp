@@ -74,34 +74,44 @@ pipeline {
              }
           }
         }
+        
         stage('deploy') {
-          steps{
-            sshagent(credentials: ['jenkinsid']){
-               sh '''
-                   ssh ubuntu@10.0.90.76 "BUILD_NUMBER=$BUILD_NUMBER" bash -s <<'REMOTE'
-                   set -e
-                   docker pull akashyogi/foodapp:${BUILD_NUMBER}
-                   docker rm -f food 2>/dev/null || true
-                   docker run -itd --name food -p 80:5000 akashyogi/foodapp:${BUILD_NUMBER}
-                   success=1
-                   for i in $(seq 1 10);do 
-                         echo "Health check attempt $i"
-                         if curl -f http://localhost; then
-                         echo "Application is healthy"
-                                success=0
-                                break
-                                fi
-                         if [ "$i" -lt 10 ]; then
-                                sleep 3
-                         fi
-                   done
-                   if [ "$success" -eq 1 ];then
-                   echo "Application health check failed"
-                   exit 1
-                   fi
-                   echo "application deployed successfully"
-                   REMOTE
-               '''
+          steps {
+            sshagent(credentials: ['jenkinsid']) {
+              sh '''
+                 ssh ubuntu@10.0.90.76 "BUILD_NUMBER=$BUILD_NUMBER bash -s" <<'REMOTE'
+                 set -e
+
+                 echo "Deploying build: $BUILD_NUMBER"
+
+                 docker pull akashyogi/foodapp:$BUILD_NUMBER
+                 docker rm -f food 2>/dev/null || true
+                 docker run -d --name food -p 80:5000 akashyogi/foodapp:$BUILD_NUMBER
+
+                 success=1
+
+             for i in $(seq 1 10); do
+               echo "Health check attempt $i"
+
+               if curl -fsS http://localhost/; then
+               echo "Application is healthy"
+               success=0
+               break
+               fi
+
+               if [ "$i" -lt 10 ]; then
+               sleep 3
+               fi   
+             done
+
+             if [ "$success" -eq 1 ]; then
+                echo "Application health check failed"
+                exit 1
+             fi
+
+             echo "Application deployed successfully"
+             REMOTE
+            '''
             }
           }
         }
