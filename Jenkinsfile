@@ -2,15 +2,17 @@ pipeline {
     agent any
 
     stages {
-        stage('checkout') {
+        stage('Checkout') {
             steps {
-                git "https://github.com/Akashisagi/Foodapp.git"
+                git branch: 'master',
+                    url: 'https://github.com/Akashisagi/Foodapp.git'
             }
         }
 
-        stage('test') {
+        stage('Test') {
             steps {
                 sh '''
+                    set -e
                     python3 -m venv venv
                     . venv/bin/activate
                     pip install -r requirements.txt
@@ -19,25 +21,31 @@ pipeline {
             }
         }
 
-        stage('build') {
+        stage('Build') {
             steps {
-                sh "docker build -t foodapp ."
-                sh "docker tag foodapp akashyogi/foodapp:${BUILD_NUMBER}"
+                sh '''
+                    set -e
+                    docker build -t foodapp:${BUILD_NUMBER} .
+                    docker tag foodapp:${BUILD_NUMBER} akashyogi/foodapp:${BUILD_NUMBER}
+                '''
             }
         }
 
-        stage('cont-test') {
+        stage('Container Test') {
             steps {
-                sh '''#!/bin/bash
-                    docker run -itd --name test-cont -p 8081:5000 akashyogi/foodapp:${BUILD_NUMBER}
-                    sleep 3
+                sh '''
+                    set -e
+                    docker rm -f test-cont 2>/dev/null || true
+                    docker run -d --name test-cont \
+                        -p 8081:5000 \
+                        akashyogi/foodapp:${BUILD_NUMBER}
 
                     success=1
 
-                    for i in {1..10}; do
+                    for i in $(seq 1 10); do
                         echo "HTTP check attempt $i"
 
-                        if curl -f http://localhost:8081/; then
+                        if curl -fsS http://localhost:8081/; then
                             success=0
                             break
                         fi
@@ -47,6 +55,7 @@ pipeline {
 
                     if [ "$success" -ne 0 ]; then
                         echo "Application health check failed"
+                        docker logs test-cont
                         exit 1
                     fi
 
@@ -56,55 +65,75 @@ pipeline {
 
             post {
                 always {
-                    sh "docker rm -f test-cont"
+                    sh 'docker rm -f test-cont 2>/dev/null || true'
                 }
             }
         }
-        stage('push') {
-          steps{
-            withCredentials([usernamePassword(
-              credentialsId: 'dockerhub-creds',
-              usernameVariable: 'dockerhub_user',
-              passwordVariable: 'dockerhub_token'
-            )]) {
-             sh '''
-               echo "$dockerhub_token" | docker login -u "$dockerhub_user" --password-stdin
-               docker push akashyogi/foodapp:${BUILD_NUMBER}
-             '''
-             }
-          }
-        }
-        stage('deploy') {
-          steps{
-            sshagent(credentials: ['jenkinsid']){
-               sh '''
-                   ssh ubuntu@10.0.90.76 "BUILD_NUMBER=$BUILD_NUMBER" bash -s <<'REMOTE'
-                   set -e
-                   docker pull akashyogi/foodapp:${BUILD_NUMBER}
-                   docker rm -f food 2>/dev/null || true
-                   docker run -itd --name food -p 80:5000 akashyogi/foodapp:${BUILD_NUMBER}
-                   success=1
-                   for i in $(seq 1 10);do
-                         echo "Health check attempt $i"
-                         if curl -f http://localhost; then
-                         echo "Application is healthy"
-                                success=0
-                                break
-                                fi
-                         if [ "$i" -lt 10 ]; then
-                                sleep 3
-                         fi
-                   done
-                   if [ "$success" -eq 1 ];then
-                   echo "Application health check failed"
-                   exit 1
-                   fi
-                   echo "application deployed successfully"
-                   REMOTE
-               '''
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'dockerhub_user',
+                        passwordVariable: 'dockerhub_token'
+                    )
+                ]) {
+                    sh '''
+                        set -e
+                        echo "$dockerhub_token" |
+                            docker login -u "$dockerhub_user" --password-stdin
+
+                        docker push akashyogi/foodapp:${BUILD_NUMBER}
+                        docker logout
+                    '''
+                }
             }
-          }
+        }
+
+        stage('Deploy') {
+            steps {
+                sshagent(credentials: ['jenkinsid']) {
+                    sh '''
+ssh ubuntu@10.0.90.76 "BUILD_NUMBER=$BUILD_NUMBER bash -s" <<'REMOTE'
+set -e
+
+echo "Pulling image version: $BUILD_NUMBER"
+docker pull akashyogi/foodapp:$BUILD_NUMBER
+
+echo "Stopping previous application container..."
+docker rm -f food 2>/dev/null || true
+
+echo "Starting new application container..."
+docker run -d --name food -p 80:5000 akashyogi/foodapp:$BUILD_NUMBER
+
+success=1
+
+for i in $(seq 1 10); do
+    echo "Deployment health check attempt $i"
+
+    if curl -fsS http://localhost/ > /dev/null; then
+        success=0
+        echo "Application is healthy"
+        break
+    fi
+
+    sleep 3
+done
+
+if [ "$success" -ne 0 ]; then
+    echo "Deployment health check failed"
+    docker logs food
+    exit 1
+fi
+
+echo "Application deployed successfully"
+REMOTE
+                    '''
+                }
+            }
         }
     }
 }
 
+         
