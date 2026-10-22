@@ -22,14 +22,14 @@ pipeline {
         stage('build') {
             steps {
                 sh "docker build -t foodapp ."
-                sh "docker tag foodapp akashyogi/foodapp:1"
+                sh "docker tag foodapp akashyogi/foodapp:${BUILD_NUMBER}"
             }
         }
 
         stage('cont-test') {
             steps {
                 sh '''#!/bin/bash
-                    docker run -itd --name test-cont -p 8081:5000 akashyogi/foodapp:1
+                    docker run -itd --name test-cont -p 8081:5000 akashyogi/foodapp:${BUILD_NUMBER}
                     sleep 3
 
                     success=1
@@ -69,7 +69,7 @@ pipeline {
             )]) {
              sh '''
                echo "$dockerhub_token" | docker login -u "$dockerhub_user" --password-stdin
-               docker push akashyogi/foodapp:1
+               docker push akashyogi/foodapp:${BUILD_NUMBER}
              '''
              }
           }
@@ -81,11 +81,11 @@ pipeline {
                    ssh ubuntu@10.0.90.76 '
                    docker pull akashyogi/foodapp:1
                    docker rm -f food 2>/dev/null || true
-                   docker run -itd --name food -p 80:5000 akashyogi/foodapp:1
+                   docker run -itd --name food -p 80:5000 akashyogi/foodapp:${BUILD_NUMBER}
                    success=1
                    for i in $(seq 1 10);do 
                          echo "Health check attempt $i"
-                         if curl -f http://localhost;then
+                         if curl -f http://localhost; then
                          echo "Application is healthy"
                                 success=0
                                 break
