@@ -81,7 +81,7 @@ pipeline {
                    ssh ubuntu@10.0.90.76 '
                    docker pull akashyogi/foodapp:1
                    docker rm -f food 2>/dev/null || true
-                   docker run -itd --name foodapp -p 80:5000 akashyogi/foodapp:1
+                   docker run -itd --name food -p 80:5000 akashyogi/foodapp:1
                    '
                '''
             }
